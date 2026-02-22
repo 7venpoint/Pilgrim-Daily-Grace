@@ -1,12 +1,58 @@
-// template
-const tintColorLight = "#2f95dc";
-
-export default {
+const Colors = {
   light: {
-    text: "#000",
-    background: "#fff",
-    tint: tintColorLight,
-    tabIconDefault: "#ccc",
-    tabIconSelected: tintColorLight,
+    background: '#FAFAF8',
+    surface: '#FFFFFF',
+    surfaceElevated: '#F5F3EE',
+    text: '#1A1A1A',
+    textSecondary: '#6B6B6B',
+    textTertiary: '#9E9E9E',
+    tint: '#C8963E',
+    tintLight: '#F5E6C8',
+    accent: '#2D5A3D',
+    accentLight: '#E8F0EB',
+    border: '#E8E4DC',
+    tabIconDefault: '#A0A0A0',
+    tabIconSelected: '#C8963E',
+    card: '#FFFFFF',
+    cardBorder: '#F0ECE4',
+    streak: '#E8963E',
+    badge: '#2D5A3D',
+    danger: '#C44536',
+    success: '#2D5A3D',
+    overlay: 'rgba(0,0,0,0.4)',
+    gradient1: '#C8963E',
+    gradient2: '#A07730',
+    headerBg: '#1B2838',
+    headerText: '#FFFFFF',
+  },
+  dark: {
+    background: '#0F1318',
+    surface: '#1A1F28',
+    surfaceElevated: '#242B36',
+    text: '#F0ECE4',
+    textSecondary: '#A0A0A0',
+    textTertiary: '#6B6B6B',
+    tint: '#D4A853',
+    tintLight: '#2E2518',
+    accent: '#5BA67A',
+    accentLight: '#1A2E22',
+    border: '#2A3040',
+    tabIconDefault: '#6B6B6B',
+    tabIconSelected: '#D4A853',
+    card: '#1A1F28',
+    cardBorder: '#2A3040',
+    streak: '#D4A853',
+    badge: '#5BA67A',
+    danger: '#E06050',
+    success: '#5BA67A',
+    overlay: 'rgba(0,0,0,0.6)',
+    gradient1: '#D4A853',
+    gradient2: '#B08A3A',
+    headerBg: '#0F1318',
+    headerText: '#F0ECE4',
   },
 };
+
+export default Colors;
+
+export type ThemeColors = typeof Colors.light;
