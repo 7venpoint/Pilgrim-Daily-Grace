@@ -22,6 +22,13 @@ export interface CommunityPrayer {
   supported: boolean;
 }
 
+export interface Reflection {
+  id: string;
+  text: string;
+  date: string;
+  devotionalTitle: string;
+}
+
 interface UserStats {
   currentStreak: number;
   longestStreak: number;
@@ -42,9 +49,12 @@ interface AppContextValue {
   isDark: boolean;
   themeMode: 'system' | 'light' | 'dark';
   setThemeMode: (mode: 'system' | 'light' | 'dark') => void;
+  userName: string;
+  setUserName: (name: string) => void;
   stats: UserStats;
   journalEntries: JournalEntry[];
   communityPrayers: CommunityPrayer[];
+  reflections: Reflection[];
   earnedBadges: Badge[];
   growthScore: ReturnType<typeof calculateGrowthScore>;
   currentLevel: Level;
@@ -56,7 +66,8 @@ interface AppContextValue {
   deleteJournalEntry: (id: string) => void;
   addCommunityPrayer: (text: string) => void;
   supportPrayer: (id: string) => void;
-  writeReflection: () => void;
+  writeReflection: (text: string, devotionalTitle: string) => void;
+  deleteReflection: (id: string) => void;
   isLoading: boolean;
 }
 
@@ -67,6 +78,8 @@ const STORAGE_KEYS = {
   JOURNAL: 'daily_grace_journal',
   COMMUNITY: 'daily_grace_community',
   THEME: 'daily_grace_theme',
+  USER_NAME: 'daily_grace_user_name',
+  REFLECTIONS: 'daily_grace_reflections',
 };
 
 const defaultStats: UserStats = {
@@ -95,9 +108,11 @@ const sampleCommunityPrayers: CommunityPrayer[] = [
 export function AppProvider({ children }: { children: ReactNode }) {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<'system' | 'light' | 'dark'>('system');
+  const [userName, setUserNameState] = useState('');
   const [stats, setStats] = useState<UserStats>(defaultStats);
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [communityPrayers, setCommunityPrayers] = useState<CommunityPrayer[]>(sampleCommunityPrayers);
+  const [reflections, setReflections] = useState<Reflection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const isDark = themeMode === 'system' ? systemColorScheme === 'dark' : themeMode === 'dark';
@@ -109,11 +124,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const loadData = async () => {
     try {
-      const [savedStats, savedJournal, savedCommunity, savedTheme] = await Promise.all([
+      const [savedStats, savedJournal, savedCommunity, savedTheme, savedUserName, savedReflections] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.STATS),
         AsyncStorage.getItem(STORAGE_KEYS.JOURNAL),
         AsyncStorage.getItem(STORAGE_KEYS.COMMUNITY),
         AsyncStorage.getItem(STORAGE_KEYS.THEME),
+        AsyncStorage.getItem(STORAGE_KEYS.USER_NAME),
+        AsyncStorage.getItem(STORAGE_KEYS.REFLECTIONS),
       ]);
 
       if (savedStats) {
@@ -124,6 +141,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (savedJournal) setJournalEntries(JSON.parse(savedJournal));
       if (savedCommunity) setCommunityPrayers(JSON.parse(savedCommunity));
       if (savedTheme) setThemeModeState(savedTheme as 'system' | 'light' | 'dark');
+      if (savedUserName) setUserNameState(savedUserName);
+      if (savedReflections) setReflections(JSON.parse(savedReflections));
     } catch (e) {
       console.error('Error loading data:', e);
     } finally {
@@ -161,6 +180,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       longestStreak: Math.max(newStreak, currentStats.longestStreak),
       lastActiveDate: today,
     };
+  }, []);
+
+  const setUserName = useCallback((name: string) => {
+    setUserNameState(name);
+    AsyncStorage.setItem(STORAGE_KEYS.USER_NAME, name);
   }, []);
 
   const markAffirmationRead = useCallback(() => {
@@ -250,10 +274,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [communityPrayers, stats, saveStats]);
 
-  const writeReflection = useCallback(() => {
+  const writeReflection = useCallback((text: string, devotionalTitle: string) => {
+    const newReflection: Reflection = {
+      id: Date.now().toString(),
+      text,
+      date: new Date().toISOString(),
+      devotionalTitle,
+    };
+    const updated = [newReflection, ...reflections];
+    setReflections(updated);
+    AsyncStorage.setItem(STORAGE_KEYS.REFLECTIONS, JSON.stringify(updated));
+
     const updatedStats = updateStreak({ ...stats, reflectionsWritten: stats.reflectionsWritten + 1 });
     saveStats(updatedStats);
-  }, [stats, updateStreak, saveStats]);
+  }, [reflections, stats, updateStreak, saveStats]);
+
+  const deleteReflection = useCallback((id: string) => {
+    const updated = reflections.filter(r => r.id !== id);
+    setReflections(updated);
+    AsyncStorage.setItem(STORAGE_KEYS.REFLECTIONS, JSON.stringify(updated));
+  }, [reflections]);
 
   const setThemeMode = useCallback((mode: 'system' | 'light' | 'dark') => {
     setThemeModeState(mode);
@@ -278,9 +318,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isDark,
     themeMode,
     setThemeMode,
+    userName,
+    setUserName,
     stats,
     journalEntries,
     communityPrayers,
+    reflections,
     earnedBadges,
     growthScore,
     currentLevel,
@@ -293,8 +336,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addCommunityPrayer,
     supportPrayer,
     writeReflection,
+    deleteReflection,
     isLoading,
-  }), [theme, isDark, themeMode, setThemeMode, stats, journalEntries, communityPrayers, earnedBadges, growthScore, currentLevel, levelProgress, markAffirmationRead, markDevotionalRead, markVerseMemorized, addJournalEntry, deleteJournalEntry, addCommunityPrayer, supportPrayer, writeReflection, isLoading]);
+  }), [theme, isDark, themeMode, setThemeMode, userName, setUserName, stats, journalEntries, communityPrayers, reflections, earnedBadges, growthScore, currentLevel, levelProgress, markAffirmationRead, markDevotionalRead, markVerseMemorized, addJournalEntry, deleteJournalEntry, addCommunityPrayer, supportPrayer, writeReflection, deleteReflection, isLoading]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

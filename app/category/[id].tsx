@@ -109,11 +109,14 @@ export default function CategoryDetailScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + webTopInset + 8 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={28} color={theme.text} />
+        <Pressable onPress={() => router.back()} hitSlop={12}
+          style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Ionicons name={info.icon as any} size={20} color={iconColor} />
+          <View style={[styles.headerIconBg, { backgroundColor: isDark ? `${iconColor}20` : `${info.color}12` }]}>
+            <Ionicons name={info.icon as any} size={18} color={iconColor} />
+          </View>
           <View>
             <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
               {info.label}
@@ -123,7 +126,7 @@ export default function CategoryDetailScreen() {
             </Text>
           </View>
         </View>
-        <View style={{ width: 28 }} />
+        <View style={{ width: 36 }} />
       </View>
 
       <FlatList
@@ -141,7 +144,9 @@ export default function CategoryDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12 },
-  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  backBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerIconBg: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 17 },
   headerSubtitle: { fontSize: 11, marginTop: 2 },
   listContent: { paddingHorizontal: 20, paddingTop: 8 },

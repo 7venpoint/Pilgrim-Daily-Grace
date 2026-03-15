@@ -1,19 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, Pressable, Platform, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, FadeIn } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, FadeIn } from 'react-native-reanimated';
 import { useApp } from '@/contexts/AppContext';
-import { useMusic } from '@/contexts/MusicContext';
 import { getDailyAffirmation, getDailyDevotional } from '@/constants/affirmations';
-import { getCurrentLevel, getLevelProgress } from '@/constants/badges';
 
 export default function HomeScreen() {
   const { theme, isDark, stats, markAffirmationRead, growthScore, currentLevel, levelProgress } = useApp();
-  const { isPlaying, musicEnabled, setMusicEnabled, togglePlayback, currentTrack, nextTrack } = useMusic();
   const insets = useSafeAreaInsets();
   const dailyAffirmation = getDailyAffirmation();
   const dailyDevotional = getDailyDevotional();
@@ -62,69 +59,17 @@ export default function HomeScreen() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </Text>
           </View>
-          <View style={styles.headerRight}>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                if (!musicEnabled) {
-                  setMusicEnabled(true);
-                } else {
-                  togglePlayback();
-                }
-              }}
-              onLongPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                if (musicEnabled && isPlaying) {
-                  nextTrack();
-                }
-              }}
-              style={[styles.musicButton, { backgroundColor: musicEnabled && isPlaying ? theme.tintLight : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)') }]}
-            >
-              <Ionicons
-                name={musicEnabled && isPlaying ? 'musical-notes' : 'musical-notes-outline'}
-                size={18}
-                color={musicEnabled && isPlaying ? theme.tint : theme.textTertiary}
-              />
-            </Pressable>
-            <View style={[styles.streakBadge, { backgroundColor: theme.tintLight }]}>
-              <Ionicons name="flame" size={18} color={theme.streak} />
-              <Text style={[styles.streakText, { color: theme.streak, fontFamily: 'Inter_700Bold' }]}>
-                {stats.currentStreak}
-              </Text>
-            </View>
+          <View style={[styles.streakBadge, { backgroundColor: theme.tintLight }]}>
+            <Ionicons name="flame" size={18} color={theme.streak} />
+            <Text style={[styles.streakText, { color: theme.streak, fontFamily: 'Inter_700Bold' }]}>
+              {stats.currentStreak}
+            </Text>
           </View>
         </View>
 
-        {musicEnabled && (
-          <Animated.View entering={FadeIn.duration(300)}>
-            <View style={[styles.musicBar, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
-              <Ionicons name="musical-notes" size={16} color={theme.tint} />
-              <Text style={[styles.musicTrackName, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]} numberOfLines={1}>
-                {currentTrack?.title || 'Worship Music'}
-              </Text>
-              <View style={styles.musicControls}>
-                <Pressable onPress={togglePlayback} hitSlop={8}>
-                  <Ionicons name={isPlaying ? 'pause' : 'play'} size={18} color={theme.tint} />
-                </Pressable>
-                <Pressable onPress={nextTrack} hitSlop={8}>
-                  <Ionicons name="play-skip-forward" size={16} color={theme.textTertiary} />
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setMusicEnabled(false);
-                  }}
-                  hitSlop={8}
-                >
-                  <Ionicons name="close" size={16} color={theme.textTertiary} />
-                </Pressable>
-              </View>
-            </View>
-          </Animated.View>
-        )}
-
-        <Animated.View entering={FadeIn.duration(600)}>
+        <Animated.View entering={FadeIn.duration(500)}>
           <LinearGradient
-            colors={isDark ? ['#1E2A3A', '#162030'] : ['#F8F0E3', '#F0E6D4']}
+            colors={isDark ? ['#1E1B4B', '#0C0A1A'] : ['#EDE9FE', '#DDD6FE']}
             style={styles.affirmationCard}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -145,7 +90,7 @@ export default function HomeScreen() {
             <Text style={[styles.affirmationText, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
               {dailyAffirmation.text}
             </Text>
-            <View style={[styles.verseBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+            <View style={[styles.verseBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(124,58,237,0.06)' }]}>
               <Text style={[styles.verseText, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
                 "{dailyAffirmation.verse}"
               </Text>
@@ -174,7 +119,7 @@ export default function HomeScreen() {
           </LinearGradient>
         </Animated.View>
 
-        <Animated.View entering={FadeIn.duration(600).delay(200)}>
+        <Animated.View entering={FadeIn.duration(500).delay(150)}>
           <Pressable
             onPress={() => router.push('/devotional')}
             style={({ pressed }) => [
@@ -188,7 +133,9 @@ export default function HomeScreen() {
             ]}
           >
             <View style={styles.devotionalHeader}>
-              <Ionicons name="book-outline" size={18} color={theme.accent} />
+              <View style={[styles.devotionalIcon, { backgroundColor: theme.accentLight }]}>
+                <Ionicons name="book-outline" size={18} color={theme.accent} />
+              </View>
               <Text style={[styles.cardLabel, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
                 DAILY DEVOTIONAL
               </Text>
@@ -208,36 +155,33 @@ export default function HomeScreen() {
           </Pressable>
         </Animated.View>
 
-        <Animated.View entering={FadeIn.duration(600).delay(400)}>
+        <Animated.View entering={FadeIn.duration(500).delay(300)}>
           <View style={[styles.growthCard, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
-            <Text style={[styles.cardLabel, { color: theme.accent, fontFamily: 'Inter_600SemiBold', marginBottom: 12 }]}>
-              SPIRITUAL GROWTH
-            </Text>
-            <View style={styles.growthRow}>
-              <View style={styles.growthInfo}>
-                <Text style={[styles.growthLevel, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-                  Lv. {currentLevel.level}
-                </Text>
-                <Text style={[styles.growthName, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
-                  {currentLevel.name}
-                </Text>
-              </View>
-              <View style={styles.growthScoreContainer}>
-                <Text style={[styles.growthScoreNumber, { color: theme.tint, fontFamily: 'Inter_700Bold' }]}>
-                  {growthScore.total}
-                </Text>
-                <Text style={[styles.growthScoreLabel, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-                  points
+            <View style={styles.growthCardHeader}>
+              <Text style={[styles.cardLabel, { color: theme.tint, fontFamily: 'Inter_600SemiBold' }]}>
+                SPIRITUAL GROWTH
+              </Text>
+              <View style={[styles.levelPill, { backgroundColor: theme.tintLight }]}>
+                <Text style={[styles.levelPillText, { color: theme.tint, fontFamily: 'Inter_600SemiBold' }]}>
+                  Lv. {currentLevel.level} · {currentLevel.name}
                 </Text>
               </View>
             </View>
-            <View style={[styles.progressBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+            <View style={styles.growthRow}>
+              <Text style={[styles.growthScoreNumber, { color: theme.tint, fontFamily: 'Inter_700Bold' }]}>
+                {growthScore.total}
+              </Text>
+              <Text style={[styles.growthScoreLabel, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                {' '}points
+              </Text>
+            </View>
+            <View style={[styles.progressBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
               <View style={[styles.progressBarFill, { width: `${Math.max(levelProgress * 100, 2)}%`, backgroundColor: theme.tint }]} />
             </View>
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeIn.duration(600).delay(600)} style={styles.quickActions}>
+        <Animated.View entering={FadeIn.duration(500).delay(450)} style={styles.quickActions}>
           <QuickAction
             icon="book-outline"
             label="Journal"
@@ -255,15 +199,15 @@ export default function HomeScreen() {
           <QuickAction
             icon="grid-outline"
             label="Browse"
-            color="#7B5EA7"
-            bg={isDark ? '#1E1830' : '#F0EBF5'}
+            color="#0EA5E9"
+            bg={isDark ? '#0C2A3A' : '#E0F2FE'}
             onPress={() => router.push('/(tabs)/categories')}
           />
           <QuickAction
-            icon="trophy-outline"
-            label="Progress"
+            icon="person-outline"
+            label="Profile"
             color={theme.streak}
-            bg={isDark ? '#2E2518' : '#FFF5E6'}
+            bg={isDark ? '#2A1A0A' : '#FFF7ED'}
             onPress={() => router.push('/(tabs)/profile')}
           />
         </Animated.View>
@@ -302,45 +246,40 @@ function getGreeting() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   greeting: { fontSize: 14, marginBottom: 4 },
   dateText: { fontSize: 20 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  musicButton: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
   streakBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 4 },
   streakText: { fontSize: 16 },
-  musicBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1, marginBottom: 16, gap: 8 },
-  musicTrackName: { flex: 1, fontSize: 13 },
-  musicControls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  affirmationCard: { borderRadius: 20, padding: 24, marginBottom: 16 },
-  affirmationHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  affirmationHeaderLeft: { gap: 4 },
-  dayLabel: { fontSize: 12, opacity: 0.75 },
+  affirmationCard: { borderRadius: 24, padding: 24, marginBottom: 14 },
+  affirmationHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
+  affirmationHeaderLeft: { gap: 3 },
+  dayLabel: { fontSize: 12, opacity: 0.8 },
   cardLabel: { fontSize: 11, letterSpacing: 1.5 },
-  affirmationText: { fontSize: 20, lineHeight: 30, marginBottom: 20 },
-  verseBox: { borderRadius: 12, padding: 16, marginBottom: 20 },
+  affirmationText: { fontSize: 20, lineHeight: 30, marginBottom: 18 },
+  verseBox: { borderRadius: 14, padding: 16, marginBottom: 18 },
   verseText: { fontSize: 14, lineHeight: 22, fontStyle: 'italic', marginBottom: 8 },
   verseRef: { fontSize: 13 },
-  affirmButton: { borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  affirmButton: { borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
   affirmButtonInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   affirmButtonText: { color: '#fff', fontSize: 16 },
-  devotionalCard: { borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1 },
-  devotionalHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  devotionalTitle: { fontSize: 18, marginBottom: 8 },
+  devotionalCard: { borderRadius: 20, padding: 20, marginBottom: 14, borderWidth: 1 },
+  devotionalHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  devotionalIcon: { width: 32, height: 32, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
+  devotionalTitle: { fontSize: 18, marginBottom: 8, lineHeight: 24 },
   devotionalPreview: { fontSize: 14, lineHeight: 22, marginBottom: 12 },
   devotionalFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   devotionalRef: { fontSize: 13 },
-  growthCard: { borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1 },
-  growthRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  growthInfo: {},
-  growthLevel: { fontSize: 22 },
-  growthName: { fontSize: 14 },
-  growthScoreContainer: { alignItems: 'flex-end' },
-  growthScoreNumber: { fontSize: 28 },
-  growthScoreLabel: { fontSize: 12 },
-  progressBarBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: 3 },
+  growthCard: { borderRadius: 20, padding: 20, marginBottom: 14, borderWidth: 1 },
+  growthCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  levelPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  levelPillText: { fontSize: 12 },
+  growthRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
+  growthScoreNumber: { fontSize: 32 },
+  growthScoreLabel: { fontSize: 14 },
+  progressBarBg: { height: 8, borderRadius: 4, overflow: 'hidden' },
+  progressBarFill: { height: '100%', borderRadius: 4 },
   quickActions: { flexDirection: 'row', gap: 10 },
-  quickAction: { flex: 1, borderRadius: 14, paddingVertical: 16, alignItems: 'center', gap: 6 },
+  quickAction: { flex: 1, borderRadius: 16, paddingVertical: 16, alignItems: 'center', gap: 6 },
   quickActionLabel: { fontSize: 12 },
 });
