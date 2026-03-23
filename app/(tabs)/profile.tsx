@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { badges as allBadges } from '@/constants/badges';
 import { Reflection } from '@/contexts/AppContext';
 
@@ -16,14 +17,15 @@ export default function ProfileScreen() {
     stats, earnedBadges, growthScore, currentLevel, levelProgress,
     reflections, deleteReflection,
   } = useApp();
+  const { user: authUser, isAuthenticated, isLoading: authLoading, login, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(userName);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
-  const displayName = userName.trim() || 'Believer';
-  const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const displayName = (isAuthenticated && authUser?.name) ? authUser.name : (userName.trim() || 'Believer');
+  const initials = displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
 
   const handleSaveName = () => {
     setUserName(nameInput.trim());
@@ -233,6 +235,74 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
+        <Animated.View entering={FadeIn.duration(400).delay(250)}>
+          <View style={[styles.section, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
+            <View style={styles.sectionHeaderRow}>
+              <View style={[styles.sectionIconBg, { backgroundColor: isAuthenticated ? theme.accentLight : theme.tintLight }]}>
+                <Ionicons name={isAuthenticated ? 'person-circle-outline' : 'log-in-outline'} size={16} color={isAuthenticated ? theme.accent : theme.tint} />
+              </View>
+              <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                Replit Account
+              </Text>
+            </View>
+
+            {isAuthenticated && authUser ? (
+              <View>
+                <View style={[styles.authRow, { borderColor: theme.border }]}>
+                  <View style={[styles.authAvatar, { backgroundColor: theme.accent }]}>
+                    <Text style={[styles.authAvatarText, { fontFamily: 'Inter_700Bold' }]}>
+                      {authUser.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.authName, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+                      {authUser.name}
+                    </Text>
+                    {!!authUser.email && (
+                      <Text style={[styles.authEmail, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                        {authUser.email}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={[styles.connectedBadge, { backgroundColor: theme.accentLight }]}>
+                    <Ionicons name="checkmark-circle" size={14} color={theme.accent} />
+                    <Text style={[styles.connectedText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>Connected</Text>
+                  </View>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    Alert.alert('Sign Out', 'Sign out of your Replit account?', [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Sign Out', style: 'destructive', onPress: logout },
+                    ]);
+                  }}
+                  style={[styles.authBtn, { borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.06)' }]}
+                >
+                  <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+                  <Text style={[styles.authBtnText, { color: '#EF4444', fontFamily: 'Inter_600SemiBold' }]}>Sign Out</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View>
+                <Text style={[styles.authHint, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                  Sign in with your Replit account to sync your progress and access your profile across devices.
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    login();
+                  }}
+                  style={[styles.authBtn, { borderColor: theme.tint, backgroundColor: theme.tintLight }]}
+                >
+                  <Ionicons name="log-in-outline" size={18} color={theme.tint} />
+                  <Text style={[styles.authBtnText, { color: theme.tint, fontFamily: 'Inter_600SemiBold' }]}>Sign in with Replit</Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </Animated.View>
+
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>Daily Grace v1.0</Text>
           <Text style={[styles.footerText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>Built by Sam Obayemi</Text>
@@ -362,6 +432,16 @@ const styles = StyleSheet.create({
   themeOption: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 14, marginBottom: 4 },
   themeOptionIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   themeOptionText: { fontSize: 15, flex: 1 },
+  authHint: { fontSize: 14, lineHeight: 22, marginBottom: 14 },
+  authBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 13, borderRadius: 14, borderWidth: 1 },
+  authBtnText: { fontSize: 15 },
+  authRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, marginBottom: 14, borderBottomWidth: 1 },
+  authAvatar: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  authAvatarText: { color: '#fff', fontSize: 15 },
+  authName: { fontSize: 15, marginBottom: 2 },
+  authEmail: { fontSize: 12 },
+  connectedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  connectedText: { fontSize: 11 },
   footer: { alignItems: 'center', marginTop: 16, gap: 4 },
   footerText: { fontSize: 12 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },

@@ -18,8 +18,12 @@ function NativeTabLayout() {
         <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
         <Label>Categories</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="bible">
+        <Icon sf={{ default: "book.closed", selected: "book.closed.fill" }} />
+        <Label>Bible</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="journal">
-        <Icon sf={{ default: "book", selected: "book.fill" }} />
+        <Icon sf={{ default: "pencil.and.list.clipboard", selected: "pencil.and.list.clipboard" }} />
         <Label>Journal</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="community">
@@ -88,11 +92,20 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="bible"
+        options={{
+          title: "Bible",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "book" : "book-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="journal"
         options={{
           title: "Journal",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "book" : "book-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "create" : "create-outline"} size={22} color={color} />
           ),
         }}
       />

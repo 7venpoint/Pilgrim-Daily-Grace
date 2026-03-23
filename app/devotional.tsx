@@ -9,6 +9,10 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useApp } from '@/contexts/AppContext';
 import { getDailyDevotional } from '@/constants/affirmations';
 
+function bibleRef(ref: string): string {
+  return ref.trim().replace(/\s+/g, '+');
+}
+
 export default function DevotionalScreen() {
   const { theme, isDark, markDevotionalRead, writeReflection, stats } = useApp();
   const insets = useSafeAreaInsets();
@@ -81,9 +85,19 @@ export default function DevotionalScreen() {
             <Text style={[styles.scriptureText, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
               "{devotional.scripture}"
             </Text>
-            <Text style={[styles.scriptureRef, { color: theme.tint, fontFamily: 'Inter_600SemiBold' }]}>
-              {devotional.scriptureRef}
-            </Text>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push({ pathname: '/(tabs)/bible', params: { ref: bibleRef(devotional.scriptureRef) } });
+              }}
+              style={styles.scriptureRefRow}
+            >
+              <Ionicons name="book" size={13} color={theme.tint} />
+              <Text style={[styles.scriptureRef, { color: theme.tint, fontFamily: 'Inter_600SemiBold' }]}>
+                {devotional.scriptureRef}
+              </Text>
+              <Ionicons name="open-outline" size={13} color={theme.tint} />
+            </Pressable>
           </LinearGradient>
         </Animated.View>
 
@@ -199,6 +213,7 @@ const styles = StyleSheet.create({
   scriptureCard: { borderRadius: 22, padding: 24, marginBottom: 28 },
   scriptureIconBg: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   scriptureText: { fontSize: 18, lineHeight: 28, marginBottom: 12 },
+  scriptureRefRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   scriptureRef: { fontSize: 14 },
   sectionTitle: { fontSize: 20, marginBottom: 12 },
   reflectionText: { fontSize: 16, lineHeight: 28, marginBottom: 28 },

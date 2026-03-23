@@ -1,11 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "node:http";
+import { setupSession, setupAuth } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  setupSession(app);
+  setupAuth(app);
 
   const httpServer = createServer(app);
-
   return httpServer;
 }

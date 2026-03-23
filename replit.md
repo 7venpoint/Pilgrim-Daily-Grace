@@ -21,10 +21,11 @@ Preferred communication style: Simple, everyday language.
 ### Frontend (Mobile App)
 - **Framework**: Expo SDK ~54 with React Native 0.81, using the **Expo Router** file-based navigation system
 - **Navigation structure**:
-  - `app/(tabs)/` — five tab screens: Today (home), Categories, Journal, Community, Profile
+  - `app/(tabs)/` — six tab screens: Today (home), Categories, Bible, Journal, Community, Profile
   - `app/category/[id]` — dynamic category detail screen
   - `app/journal/new` — modal for creating journal entries
-  - `app/devotional` — card-presentation devotional reader
+  - `app/devotional` — card-presentation devotional reader with tappable scripture references
+- **Bible tab**: KJV Bible reader via bible-api.com (free, no auth). Supports reference search (e.g. "John 3:16"), quick verse chips, book browser, and auto-loading from devotional links via `?ref=` query param
 - **UI approach**: Custom theming via `constants/colors.ts` with full light/dark mode support. Theme is driven by `AppContext` which respects system preference or manual override.
 - **Fonts**: Inter (400, 500, 600, 700) loaded via `@expo-google-fonts/inter`
 - **Animations**: `react-native-reanimated` for spring/fade animations; `expo-haptics` for tactile feedback
@@ -32,9 +33,9 @@ Preferred communication style: Simple, everyday language.
 - **Tab bar**: Uses `expo-glass-effect` for Liquid Glass on supported iOS; falls back to BlurView/standard tabs on other platforms
 
 ### State Management
-- **Global app state**: React Context via `AppContext` — holds user stats, journal entries, community prayers, badges, theme, and streak logic
-- **Music state**: Separate `MusicContext` manages expo-av Audio playback, track cycling, and volume
-- **Persistence**: `AsyncStorage` (`@react-native-async-storage/async-storage`) stores all user data locally (stats, journal, community prayers, theme preference, music settings)
+- **Global app state**: React Context via `AppContext` — holds user stats, journal entries, community prayers, badges, theme, streak logic, userName, and saved reflections
+- **Auth state**: `AuthContext` (contexts/AuthContext.tsx) — wraps Replit OIDC auth. `isAuthenticated`, `user`, `login()`, `logout()` exposed via `useAuth()`. Fetches from `/api/auth/user`.
+- **Persistence**: `AsyncStorage` (`@react-native-async-storage/async-storage`) stores all user data locally (stats, journal, community prayers, theme preference, userName, reflections)
 - **Server data**: `@tanstack/react-query` is wired up for server-side fetching (currently minimal API usage)
 
 ### Content Data
@@ -44,8 +45,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend (Express Server)
 - **Framework**: Express 5 (`server/index.ts`) with TypeScript, bundled via esbuild for production
-- **Current state**: Minimal — `server/routes.ts` is a skeleton with no application routes yet. The server mainly serves as an API host and static file server for the web build.
-- **Storage layer**: `server/storage.ts` provides a `MemStorage` class (in-memory user store) implementing an `IStorage` interface — designed to be swapped out for a real database implementation
+- **Auth**: Replit OIDC authentication via `server/replitAuth.ts`. Routes: `GET /api/auth/login` → initiates OIDC flow with PKCE, `GET /api/auth/callback` → exchanges code for tokens, `GET /api/auth/logout` → destroys session, `GET /api/auth/user` → returns current user or `{isAuthenticated: false}`. Uses `openid-client` v6 with PostgreSQL-backed sessions via `connect-pg-simple`.
 - **CORS**: Configured to allow Replit dev/deployment domains and localhost origins
 
 ### Database
