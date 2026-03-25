@@ -1,31 +1,31 @@
-# Android APK Build Workflow
+# Expo EAS Build Configuration
 
-name: Build APK
+name: EAS Build
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Set up JDK
-        uses: actions/setup-java@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          java-version: '11'
+          node-version: 14
 
-      - name: Build APK
+      - name: Install dependencies
         run: |
-          ./gradlew assembleDebug
+          npm install -g eas-cli
+          npm install
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v2
-        with:
-          name: app-debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Build with EAS
+        run: |
+          eas build -p android --profile preview
