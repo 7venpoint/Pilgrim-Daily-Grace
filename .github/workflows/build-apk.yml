@@ -4,42 +4,40 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:   # 👈 THIS enables "Run workflow" button
+  workflow_dispatch:   # 👈 allows manual build via "Run workflow" button
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repo
+      # 1️⃣ Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Setup Node
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # 3. Install dependencies
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: |
           npm install -g eas-cli
           npm install
 
-      # 4. Install jq (for parsing build URL)
+      # 4️⃣ Install jq (needed to parse APK URL)
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # 5. Login to Expo
-      - name: Login to Expo
-        run: eas login --token ${{ secrets.EXPO_TOKEN }}
-
-      # 6. Build APK
+      # 5️⃣ Build APK (using Expo token for authentication)
       - name: Build APK with EAS
         run: eas build -p android --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      # 7. Get APK download link
+      # 6️⃣ Get APK download link
       - name: Get APK download URL
         run: |
           BUILD_URL=$(eas build:list --platform android --status finished --json | jq -r '.[0].artifacts.buildUrl')
