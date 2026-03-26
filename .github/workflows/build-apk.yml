@@ -1,5 +1,3 @@
-# Expo EAS Build Configuration
-
 name: EAS Build
 
 on:
@@ -14,26 +12,41 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      # 1️⃣ Checkout code
+      - uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      # 2️⃣ Setup Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 18
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: |
           npm install -g eas-cli
           npm install
 
-      - name: Build with EAS
-        run: |
-          eas build -p android --profile preview
+      # 4️⃣ Install jq (needed for parsing JSON)
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-- name: Get APK download URL
-  id: apk_url
-  run: |
-    # Get the latest finished build for Android
-    BUILD_URL=$(eas build:list --platform android --status finished --json | jq -r '.[0].artifacts.buildUrl')
-    echo "APK_URL=$BUILD_URL" >> $GITHUB_ENV
-    echo "APK download link: $BUILD_URL"
+      # 5️⃣ Login to Expo
+      - name: Login to Expo
+        run: eas login --token ${{ secrets.EXPO_TOKEN }}
+
+      # 6️⃣ Build APK
+      - name: Build with EAS
+        run: eas build -p android --profile preview --non-interactive
+
+      # 7️⃣ Get APK download URL
+      - name: Get APK download URL
+        id: apk_url
+        run: |
+          BUILD_URL=$(eas build:list --platform android --status finished --json | jq -r '.[0].artifacts.buildUrl')
+          echo "APK_URL=$BUILD_URL" >> $GITHUB_ENV
+          echo "APK download link: $BUILD_URL"
+
+      # 8️⃣ Show APK link in logs
+      - name: Show APK link
+        run: echo "Your APK is ready to download: ${{ env.APK_URL }}"
