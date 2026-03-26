@@ -29,3 +29,11 @@ jobs:
       - name: Build with EAS
         run: |
           eas build -p android --profile preview
+
+- name: Get APK download URL
+  id: apk_url
+  run: |
+    # Get the latest finished build for Android
+    BUILD_URL=$(eas build:list --platform android --status finished --json | jq -r '.[0].artifacts.buildUrl')
+    echo "APK_URL=$BUILD_URL" >> $GITHUB_ENV
+    echo "APK download link: $BUILD_URL"
